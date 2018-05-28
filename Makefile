@@ -1,7 +1,7 @@
 GO ?= go
 
 DIST       ?= dist
-TARGETS 	= vcapenv vcapenvwrapper
+TARGETS	    = vcapenv vcapenvwrapper
 TARGETS_BIN = $(TARGETS:%=$(DIST)/%)
 
 SRC = $(wildcard *.go)
