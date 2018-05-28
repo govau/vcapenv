@@ -29,4 +29,4 @@ $(TARGETS_BIN): $(DIST)/%: cmd/%/main.go $(SRC) $$(wildcard cmd/%/*.go)
 clean: $(DIST)
 	rm -r $^
 
-.PHONY: clean clean-linux build test
+.PHONY: clean build test
