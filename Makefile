@@ -5,7 +5,7 @@ TARGETS_BIN = $(TARGETS:%=dist/%)
 
 SRC = $(wildcard *.go)
 
-all: build test $(TARGETS_BIN)
+all: build $(TARGETS_BIN)
 
 build:
 	$(GO) build ./...
