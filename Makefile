@@ -1,17 +1,23 @@
 GO ?= go
 
 TARGETS 	= vcapenv vcapenvwrapper
-TARGETS_BIN = $(TARGETS:%=build/%)
+TARGETS_BIN = $(TARGETS:%=dist/%)
 
 SRC = $(wildcard *.go)
 
-all: $(TARGETS_BIN)
+all: build test $(TARGETS_BIN)
 
-build/%: cmd/%/main.go $(SRC) $(wildcard % *.go)
+build:
+	$(GO) build ./...
+
+test:
+	$(GO) test ./...
+
+dist/%: cmd/%/main.go $(SRC) $(wildcard % *.go)
 	@mkdir -p $(@D)
 	$(GO) build -o $@ $<
 
-clean: build
+clean: dist
 	rm -r $^
 
-.PHONY: clean
+.PHONY: clean build test
