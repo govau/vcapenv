@@ -12,6 +12,8 @@ import (
 
 type services map[string]struct{}
 
+var _ flag.Value = (services)(nil)
+
 func (s services) String() string {
 	var terms []string
 	for service := range s {
