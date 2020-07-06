@@ -57,6 +57,14 @@ func GetVCAPServices() (VCAPServices, error) {
 	return services, err
 }
 
+func GetVCAPApplication() (VCAPApplication, error) {
+	var application VCAPApplication
+	vcap := os.Getenv("VCAP_APPLICATION")
+	err := json.NewDecoder(strings.NewReader(vcap)).Decode(&application)
+
+	return application, err
+}
+
 func Run(namer Namer, exporter VariableExporter) error {
 	services, err := GetVCAPServices()
 	if err != nil {

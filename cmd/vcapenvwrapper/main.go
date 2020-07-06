@@ -2,7 +2,10 @@ package main
 
 import (
 	"flag"
+	"fmt"
+	"io"
 	"log"
+	"log/syslog"
 	"os"
 	"os/exec"
 	"strings"
@@ -36,6 +39,41 @@ func (s services) Name(service, variable string) string {
 	return vcapenv.ServiceNamer(service, variable)
 }
 
+func getOutputStreams() (stdout, stderr io.Writer) {
+	stdout = os.Stdout
+	stderr = os.Stderr
+
+	syslogURL, ok := os.LookupEnv("SYSLOG_URL")
+	if !ok {
+		return
+	}
+
+	applicationLabel := "UNKNOWN_APP"
+	application, err := vcapenv.GetVCAPApplication()
+	if err == nil {
+		applicationLabel = fmt.Sprintf(
+			"%s.%s.%s",
+			application.OrganizationName,
+			application.SpaceName,
+			application.ApplicationName,
+		)
+	}
+
+	syslogout, err := syslog.Dial("udp", syslogURL, syslog.LOG_INFO|syslog.LOG_DAEMON, applicationLabel)
+	if err != nil {
+		return
+	}
+
+	syslogerr, err := syslog.Dial("udp", syslogURL, syslog.LOG_ERR|syslog.LOG_DAEMON, applicationLabel)
+	if err != nil {
+		return
+	}
+
+	stdout = io.MultiWriter(os.Stdout, syslogout)
+	stderr = io.MultiWriter(os.Stderr, syslogerr)
+	return stdout, stderr
+}
+
 func main() {
 	var rootServices = make(services)
 
@@ -52,13 +90,15 @@ func main() {
 		log.Fatal(err)
 	}
 
+	stdout, stderr := getOutputStreams()
+
 	cmd := fargs[0]
 	args := fargs[1:]
 
 	command := exec.Command(cmd, args...)
 	command.Stdin = os.Stdin
-	command.Stdout = os.Stdout
-	command.Stderr = os.Stderr
+	command.Stdout = stdout
+	command.Stderr = stderr
 	err = command.Run()
 	if err != nil {
 		log.Fatal(err)
